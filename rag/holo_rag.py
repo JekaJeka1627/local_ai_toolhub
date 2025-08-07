@@ -16,9 +16,16 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.core.node_parser import SentenceSplitter
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-BOOKS_DIR = Path(os.getenv("BOOKS_DIR", BASE_DIR / "Books"))
-CHROMA_DIR = BASE_DIR / "rag" / "chroma_store"
+
+BOOKS_DIR = Path(os.environ.get("BOOKS_DIR", BASE_DIR / "Books"))
+CHROMA_DIR = Path(os.environ.get("CHROMA_DIR", BASE_DIR / "rag" / "chroma_store"))
 PERSIST_DIR = BASE_DIR / "rag" / "storage"
+
+# Ensure the books directory exists before attempting to load files
+if not BOOKS_DIR.exists():
+    raise FileNotFoundError(
+        f"Books directory '{BOOKS_DIR}' not found. Set the BOOKS_DIR environment variable to override."
+    )
 
 # Setup once
 embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
