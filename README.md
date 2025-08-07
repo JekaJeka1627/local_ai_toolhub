@@ -23,7 +23,13 @@ A local AI assistant with RAG capabilities and tool integration.
    huggingface-cli login
    ```
 
-3. **Run the Application**
+3. **Set Book Directory (Optional)**
+
+   ```bash
+   export BOOKS_DIR=/path/to/your/books
+   ```
+
+4. **Run the Application**
 
    ```bash
    streamlit run local_chat.py
@@ -74,6 +80,4 @@ export LM_STUDIO_MODEL=Qwen/Qwen1.5-7B-Chat-GGUF
 
 ## Requirements
 
-- Python 3.8+
-- LM Studio running locally (for Qwen3 model)
-- Book collection in the `Books/` directory or custom `BOOKS_DIR`
+- Book collection in the `Books/` directory or path specified by `$BOOKS_DIR`
