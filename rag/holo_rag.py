@@ -8,8 +8,20 @@ from llama_index.core.node_parser import SentenceSplitter
 import chromadb
 import os
 
-BOOKS_DIR = r"C:\Users\jesse\Documents\Books\Books"
-CHROMA_DIR = "rag/chroma_store"
+
+# Determine repository paths and allow overriding via environment variables
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DEFAULT_BOOKS_DIR = os.path.join(REPO_ROOT, "Books")
+DEFAULT_CHROMA_DIR = os.path.join(os.path.dirname(__file__), "chroma_store")
+
+BOOKS_DIR = os.environ.get("BOOKS_DIR", DEFAULT_BOOKS_DIR)
+CHROMA_DIR = os.environ.get("CHROMA_DIR", DEFAULT_CHROMA_DIR)
+
+# Ensure the books directory exists before attempting to load files
+if not os.path.exists(BOOKS_DIR):
+    raise FileNotFoundError(
+        f"Books directory '{BOOKS_DIR}' not found. Set the BOOKS_DIR environment variable to override."
+    )
 
 # Setup once
 embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")

@@ -21,7 +21,12 @@ A local AI assistant with RAG capabilities and tool integration.
    huggingface-cli login
    ```
 
-3. **Run the Application**
+3. **Set Book Directory (Optional)**
+   ```bash
+   export BOOKS_DIR=/path/to/your/books
+   ```
+
+4. **Run the Application**
    ```bash
    streamlit run local_chat.py
    ```
@@ -36,7 +41,7 @@ local_ai_toolhub/
 ├── rag/
 │   └── holo_rag.py       # RAG implementation
 ├── rag/chroma_store/     # Vector database (auto-created)
-└── Books/                # Document collection
+└── Books/                # Document collection (default; override with $BOOKS_DIR)
 ```
 
 ## Usage
@@ -50,4 +55,4 @@ local_ai_toolhub/
 
 - Python 3.8+
 - LM Studio running locally (for Qwen3 model)
-- Book collection in the specified directory
+- Book collection in `Books/` or the path set in `$BOOKS_DIR`
