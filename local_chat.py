@@ -6,18 +6,21 @@ from tools import mcp_tools, run_tool
 st.set_page_config(page_title="Local AI ToolHub", layout="wide")
 st.title("📚 Local AI ToolHub – Query + Tools")
 
-# Sidebar settings
-with st.sidebar:
-    st.header("🤖 Model & Tools")
-    model = st.selectbox("Select Model", ["Qwen3 (General) ✨", "Holo1 (Book RAG) 📚"])
-    prompt = st.text_area("Your Prompt", height=200)
-    selected_tool = None
+# Model and tool selection in main layout
+st.header("🤖 Model & Tools")
+model_col, tool_col = st.columns(2)
 
+with model_col:
+    model = st.selectbox("Select Model", ["Qwen3 (General) ✨", "Holo1 (Book RAG) 📚"])
+
+with tool_col:
+    selected_tool = None
     if model.startswith("Qwen3"):
         st.markdown("### 🔧 MCP Tool (Optional)")
         selected_tool = st.selectbox("Choose a tool (or none)", ["None"] + list(mcp_tools.keys()))
 
-    submit = st.button("Run", type="primary")
+prompt = st.text_area("Your Prompt", height=200)
+submit = st.button("Run", type="primary")
 
 # Main output area
 if submit and prompt:

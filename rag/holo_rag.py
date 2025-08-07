@@ -1,24 +1,28 @@
 # Holo RAG Implementation
 # RAG (Retrieval-Augmented Generation) functionality
 # rag/holo_rag.py
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from pathlib import Path
+import os
+import chromadb
+from llama_index.core import (
+    VectorStoreIndex,
+    SimpleDirectoryReader,
+    Settings,
+    StorageContext,
+    load_index_from_storage,
+)
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.core.node_parser import SentenceSplitter
-import chromadb
-import os
 
+BASE_DIR = Path(__file__).resolve().parents[1]
 
-# Determine repository paths and allow overriding via environment variables
-REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-DEFAULT_BOOKS_DIR = os.path.join(REPO_ROOT, "Books")
-DEFAULT_CHROMA_DIR = os.path.join(os.path.dirname(__file__), "chroma_store")
-
-BOOKS_DIR = os.environ.get("BOOKS_DIR", DEFAULT_BOOKS_DIR)
-CHROMA_DIR = os.environ.get("CHROMA_DIR", DEFAULT_CHROMA_DIR)
+BOOKS_DIR = Path(os.environ.get("BOOKS_DIR", BASE_DIR / "Books"))
+CHROMA_DIR = Path(os.environ.get("CHROMA_DIR", BASE_DIR / "rag" / "chroma_store"))
+PERSIST_DIR = BASE_DIR / "rag" / "storage"
 
 # Ensure the books directory exists before attempting to load files
-if not os.path.exists(BOOKS_DIR):
+if not BOOKS_DIR.exists():
     raise FileNotFoundError(
         f"Books directory '{BOOKS_DIR}' not found. Set the BOOKS_DIR environment variable to override."
     )
@@ -29,20 +33,29 @@ Settings.embed_model = embed_model
 Settings.chunk_size = 512
 
 # Initialize ChromaDB
-chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
+chroma_client = chromadb.PersistentClient(path=str(CHROMA_DIR))
 chroma_collection = chroma_client.get_or_create_collection("books")
 vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
 
-# Load documents and create index
-documents = SimpleDirectoryReader(BOOKS_DIR).load_data()
-parser = SentenceSplitter()
-nodes = parser.get_nodes_from_documents(documents)
+# Load or build index
+if PERSIST_DIR.exists() and any(PERSIST_DIR.iterdir()):
+    storage_context = StorageContext.from_defaults(
+        persist_dir=str(PERSIST_DIR), vector_store=vector_store
+    )
+    index = load_index_from_storage(storage_context)
+else:
+    documents = SimpleDirectoryReader(str(BOOKS_DIR)).load_data()
+    parser = SentenceSplitter()
+    nodes = parser.get_nodes_from_documents(documents)
+    storage_context = StorageContext.from_defaults(
+        persist_dir=str(PERSIST_DIR), vector_store=vector_store
+    )
+    index = VectorStoreIndex(nodes, storage_context=storage_context)
+    index.storage_context.persist()
 
-index = VectorStoreIndex(nodes, storage_context=None)
 query_engine = index.as_query_engine(similarity_top_k=5)
 
 # Callable function for Streamlit
-
-def holo_query_books(prompt):
+def holo_query_books(prompt: str) -> str:
     response = query_engine.query(prompt)
     return str(response)
