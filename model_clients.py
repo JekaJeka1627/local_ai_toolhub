@@ -1,8 +1,10 @@
 # model_clients.py
 import requests
+import os
 from rag.holo_rag import holo_query_books
 
-LM_STUDIO_URL = "http://localhost:1234/v1/chat"
+LM_STUDIO_URL = os.getenv("LM_STUDIO_URL", "http://localhost:1234/v1/chat")
+LM_STUDIO_MODEL = os.getenv("LM_STUDIO_MODEL", "Qwen/Qwen1.5-7B-Chat-GGUF")
 
 # Core interface for querying models
 def query_model(model_name, prompt, tool_result=None):
@@ -22,7 +24,7 @@ def query_qwen3(prompt, tool_result=None):
         messages.append({"role": "system", "content": f"Tool result: {tool_result}"})
 
     response = requests.post(LM_STUDIO_URL, json={
-        "model": "Qwen/Qwen1.5-7B-Chat-GGUF",
+        "model": LM_STUDIO_MODEL,
         "messages": messages
     })
 
